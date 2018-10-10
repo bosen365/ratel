@@ -162,6 +162,7 @@ public class Main {
         Element item = (Element) applicationNodeList.item(0);
         String applicationClass = item.getAttribute("android:name");
         item.setAttribute("android:name", driverApplicationClass);
+        item.removeAttribute("android:qihoo");
         if (StringUtils.isNotBlank(applicationClass)) {
             //原始的Application配置，防止到meta中，让驱动器负责加载原始Application
             Element applicationMeta = document.createElement("meta-data");
