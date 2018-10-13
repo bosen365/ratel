@@ -309,7 +309,8 @@ public class Androlib {
 
         // we must go after the Apk is built, and copy the files in via Zip
         // this is because Aapt won't add files it doesn't know (ex unknown files)
-        buildUnknownFiles(appDir, outFile, meta);
+        //buildUnknownFiles(appDir, outFile, meta);
+        //对于ratel来说，不需要copy unknown file，所以ratel-tool本来就会删除unknown file
 
         // we copied the AndroidManifest.xml to AndroidManifest.xml.orig so we can edit it
         // lets restore the unedited one, to not change the original

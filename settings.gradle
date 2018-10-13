@@ -1,1 +1,1 @@
-include ':ratel-driver',':ratel-tool', ':demoapp', ':crackmodule', ':apktool'
+include ':ratel-driver',':ratel-tool', ':demoapp', ':crackmodule', ':apktool', ':ratel-wifilocating'

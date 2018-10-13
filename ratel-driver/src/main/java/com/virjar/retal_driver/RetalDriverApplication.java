@@ -2,6 +2,7 @@ package com.virjar.retal_driver;
 
 import android.app.Application;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageManager;
 import android.content.res.AssetManager;
@@ -58,7 +59,9 @@ public class RetalDriverApplication extends Application {
         ExposedBridge.initOnce(this, getApplicationInfo(), getClassLoader());
 
         if (!checkSupport()) {
-            throw new IllegalStateException("epic 不支持的版本");
+            Intent goNotSupportIntent = new Intent(base, NotSupportActivity.class);
+            base.startActivity(goNotSupportIntent);
+            return;
         }
         //释放两个apk，一个是xposed模块，一个是原生的apk，原生apk替换为当前的Application作为真正的宿主，xposed模块apk在Application被替换之前作为补丁代码注入到当前进程
         releaseApkFiles();
