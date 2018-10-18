@@ -50,6 +50,8 @@ public class RetalDriverApplication extends Application {
      * 如果原始的apk文件，配置了Application，那么我们需要加载原始的apk
      */
     static final String APPLICATION_CLASS_NAME = "APPLICATION_CLASS_NAME";
+    private ClassLoader originClassLoader = null;
+    private ApplicationInfo appinfoInLoadedApk = null;
 
     @Override
     protected void attachBaseContext(Context base) {
@@ -78,11 +80,11 @@ public class RetalDriverApplication extends Application {
             //ignore
         }
         String originApkSourceDir = new File(ratelWorkDir(this), originAPKFileName).getAbsolutePath();
-        PathClassLoader originClassLoader = new PathClassLoader(originApkSourceDir, parentClassLoader);
+        originClassLoader = new PathClassLoader(originApkSourceDir, parentClassLoader);
         XposedHelpers.setObjectField(loadApk, "mClassLoader", originClassLoader);
 
         //context中的resource，仍然绑定在老的apk环境下，现在把他们迁移
-        ApplicationInfo appinfoInLoadedApk = (ApplicationInfo) XposedHelpers.getObjectField(loadApk, "mApplicationInfo");
+        appinfoInLoadedApk = (ApplicationInfo) XposedHelpers.getObjectField(loadApk, "mApplicationInfo");
         appinfoInLoadedApk.sourceDir = originApkSourceDir;
         XposedHelpers.setObjectField(loadApk, "mAppDir", originApkSourceDir);
         XposedHelpers.setObjectField(loadApk, "mResDir", originApkSourceDir);
@@ -161,10 +163,10 @@ public class RetalDriverApplication extends Application {
 
     }
 
-    private void loadXposedModule(Application application) {
-        File modulePath = new File(ratelWorkDir(application), xposedBridgeApkFileName);
+    private void loadXposedModule(Context context) {
+        File modulePath = new File(ratelWorkDir(context), xposedBridgeApkFileName);
         boolean ret = loadModule(modulePath.getAbsolutePath(),
-                application.getApplicationInfo(), application.getClassLoader());
+                appinfoInLoadedApk);
         log("模块加载：" + ret);
     }
 
@@ -251,8 +253,8 @@ public class RetalDriverApplication extends Application {
         }
     }
 
-    public static boolean loadModule(final String moduleApkPath,
-                                     final ApplicationInfo currentApplicationInfo, ClassLoader appClassLoader) {
+    public boolean loadModule(final String moduleApkPath,
+                              final ApplicationInfo currentApplicationInfo) {
 
 
         //dexposed这里，会读取xposedinstaller，但是我们并没有xposed installer，所以忽略掉xposed installers的过滤
@@ -264,7 +266,7 @@ public class RetalDriverApplication extends Application {
         }
 
         ClassLoader hostClassLoader = ExposedBridge.class.getClassLoader();
-        ClassLoader appClassLoaderWithXposed = ExposedBridge.getAppClassLoaderWithXposed(appClassLoader);
+        //ClassLoader appClassLoaderWithXposed = ExposedBridge.getAppClassLoaderWithXposed(appClassLoader);
 
         //ClassLoader mcl = new DexClassLoader(moduleApkPath, moduleOdexDir, moduleLibPath, hostClassLoader);
         ClassLoader mcl = new PathClassLoader(moduleApkPath, hostClassLoader);
@@ -307,7 +309,7 @@ public class RetalDriverApplication extends Application {
                         XC_LoadPackage.LoadPackageParam lpparam = new XC_LoadPackage.LoadPackageParam(xc_loadPackageCopyOnWriteSortedSet);
                         lpparam.packageName = currentApplicationInfo.packageName;
                         lpparam.processName = currentApplicationInfo.processName;
-                        lpparam.classLoader = appClassLoaderWithXposed;
+                        lpparam.classLoader = originClassLoader;
                         lpparam.appInfo = currentApplicationInfo;
                         lpparam.isFirstApplication = true;
                         XC_LoadPackage.callAll(lpparam);
