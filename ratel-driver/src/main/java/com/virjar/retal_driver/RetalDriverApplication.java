@@ -131,7 +131,7 @@ public class RetalDriverApplication extends Application {
 
         //有值的话调用该Applicaiton
         Object currentActivityThread = currentActivityThread();
-        Object mBoundApplication = XposedHelpers.getObjectField("currentActivityThread", "mBoundApplication");
+        Object mBoundApplication = XposedHelpers.getObjectField(currentActivityThread, "mBoundApplication");
 
         Object loadedApkInfo = XposedHelpers.getObjectField(mBoundApplication, "info");
         //把当前进程的mApplication 设置成了null
